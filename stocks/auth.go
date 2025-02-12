@@ -1,4 +1,4 @@
-// manages the API authenication
+// manages the API authentication
 package stocks
 
 import "os"
