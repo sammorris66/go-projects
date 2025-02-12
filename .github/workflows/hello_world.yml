@@ -1,10 +1,15 @@
-name: "hello-world"
-
 on: [push]
 
 jobs:
-  echo_hello_world:
+  hello_world_job:
     runs-on: ubuntu-latest
+    name: A job to say hello
     steps:
-      - name: Print Hello World
-        run: echo "hello-world"
+      - name: Hello world action step
+        id: hello
+        uses: actions/hello-world-docker-action@v1
+        with:
+          who-to-greet: 'Sammy'
+      # Use the output from the `hello` step
+      - name: Get the output time
+        run: echo "The time was ${{ steps.hello.outputs.time }}"
