@@ -12,7 +12,6 @@ type Stocks struct {
 	symbol    string
 	price     float64
 	apiClient APIClient
-	apiAuth   APIAuth
 	ticker    Ticker
 }
 
@@ -32,10 +31,14 @@ func NewStocks(symbol, market string) (*Stocks, error) {
 		return nil, fmt.Errorf("failed to create ticker: %w", err)
 	}
 
+	apiClient, err := NewAPIClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create api client: %w", err)
+	}
+
 	return &Stocks{
 		symbol:    symbol,
-		apiClient: *NewAPIClient(),
-		apiAuth:   *NewAPIAuth(),
+		apiClient: *apiClient,
 		ticker:    *ticker,
 	}, nil
 }
@@ -84,7 +87,7 @@ func (s *Stocks) findStock() error {
 		return err
 	}
 
-	requestBody, err := s.apiClient.GetRequest(fullUrl, s.apiAuth.GetToken())
+	requestBody, err := s.apiClient.GetRequest(fullUrl)
 	if err != nil {
 		return fmt.Errorf("API request error: %w", err)
 	}

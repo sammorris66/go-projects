@@ -8,7 +8,6 @@ import (
 type Ticker struct {
 	market    string
 	APIClient APIClient
-	APIAuth   APIAuth
 }
 
 func NewTicker(market string) (*Ticker, error) {
@@ -17,10 +16,14 @@ func NewTicker(market string) (*Ticker, error) {
 		return nil, fmt.Errorf("market can not be empty")
 	}
 
+	apiClient, err := NewAPIClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create api client: %w", err)
+	}
+
 	return &Ticker{
 		market:    market,
-		APIClient: *NewAPIClient(),
-		APIAuth:   *NewAPIAuth(),
+		APIClient: *apiClient,
 	}, nil
 }
 
@@ -55,7 +58,7 @@ func (t *Ticker) GetTickers() ([]string, error) {
 		return nil, fmt.Errorf("can't create a URL: %w", err)
 	}
 
-	resp, err := t.APIClient.GetRequest(url, t.APIAuth.GetToken())
+	resp, err := t.APIClient.GetRequest(url)
 	if err != nil {
 		fmt.Println("the is a error calling the Get method")
 	}

@@ -4,33 +4,55 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
 // APIClient manages HTTP clients
 type APIClient struct {
-	Timeout int
+	timeout int
+	token   string
 }
 
 // NewAPIClient initializes an APIClient
-func NewAPIClient() *APIClient {
-	return &APIClient{Timeout: 10}
+func NewAPIClient() (*APIClient, error) {
+	apiClient := &APIClient{
+		timeout: 10,
+	}
+	err := apiClient.updateToken()
+	if err != nil {
+		return nil, err
+	}
+	return apiClient, nil
+}
+
+func (apiClient *APIClient) updateToken() error {
+
+	token := os.Getenv("API_TOKEN")
+
+	if token == "" {
+		return fmt.Errorf("api token variable is blank")
+	}
+
+	apiClient.token = token
+	return nil
+
 }
 
 // UpdateTimeout updates the client's timeout
 func (apiClient *APIClient) UpdateTimeout(timeout int) *APIClient {
-	apiClient.Timeout = timeout
+	apiClient.timeout = timeout
 	return apiClient
 }
 
 // CreateClient returns an HTTP client
 func (apiClient *APIClient) CreateClient() *http.Client {
 	return &http.Client{
-		Timeout: time.Duration(apiClient.Timeout) * time.Second,
+		Timeout: time.Duration(apiClient.timeout) * time.Second,
 	}
 }
 
-func (apiClient *APIClient) GetRequest(url string, token string) ([]byte, error) {
+func (apiClient *APIClient) GetRequest(url string) ([]byte, error) {
 
 	// TODO: Add error handling for HTTPStatus OK
 	client := apiClient.CreateClient()
@@ -38,7 +60,7 @@ func (apiClient *APIClient) GetRequest(url string, token string) ([]byte, error)
 	if err != nil {
 		return nil, fmt.Errorf("error creating request: %w", err)
 	}
-	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Authorization", "Bearer "+apiClient.token)
 
 	resp, err := client.Do(req)
 	if err != nil {
