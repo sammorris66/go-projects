@@ -40,9 +40,13 @@ func (apiClient *APIClient) updateToken() error {
 }
 
 // UpdateTimeout updates the client's timeout
-func (apiClient *APIClient) UpdateTimeout(timeout int) *APIClient {
+func (apiClient *APIClient) UpdateTimeout(timeout int) error {
+	if timeout <= 0 {
+		return fmt.Errorf("timeout must be greater than zero, got %d", timeout)
+	}
+
 	apiClient.timeout = timeout
-	return apiClient
+	return nil
 }
 
 // CreateClient returns an HTTP client
@@ -54,7 +58,6 @@ func (apiClient *APIClient) CreateClient() *http.Client {
 
 func (apiClient *APIClient) GetRequest(url string) ([]byte, error) {
 
-	// TODO: Add error handling for HTTPStatus OK
 	client := apiClient.CreateClient()
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
