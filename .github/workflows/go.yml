@@ -17,18 +17,7 @@ jobs:
       run:
         shell: pwsh
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
+    - id: go-checks
+      uses: sammorris66/go-checks@v1
       with:
-        go-version: '1.23'
-
-    - name: Test
-      run: go test -v ./...
-
-    - name: Install golangci-lint
-      run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-    - name: Run golangci-lint
-      run: golangci-lint run
+        go-version: "1.23"
