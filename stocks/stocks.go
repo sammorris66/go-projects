@@ -36,25 +36,36 @@ func NewStocks(symbol, market string) (*Stocks, error) {
 		return nil, fmt.Errorf("failed to create api client: %w", err)
 	}
 
-	return &Stocks{
+	stock := &Stocks{
 		symbol:    symbol,
 		apiClient: *apiClient,
 		ticker:    *ticker,
-	}, nil
+	}
+
+	valid, err := stock.validateSymbol(symbol)
+	if err != nil {
+		return nil, fmt.Errorf("symbol validation failed: %w", err)
+	}
+	if !valid {
+		return nil, fmt.Errorf("invalid symbol: %s", symbol)
+	}
+
+	return stock, nil
+
 }
 
-func (s *Stocks) ValidateSymbol() (bool, error) {
+func (s *Stocks) validateSymbol(symbol string) (bool, error) {
 
 	resp, err := s.ticker.GetTickers()
 	if err != nil {
 		return false, fmt.Errorf("can not get the ticker information: %w", err)
 	}
 
-	if slices.Contains(resp, s.symbol) {
-		fmt.Printf("Symbol %v is found ", s.symbol)
+	if slices.Contains(resp, symbol) {
+		fmt.Printf("Symbol %v is found ", symbol)
 		return true, nil
 	} else {
-		fmt.Printf("Symbol %v is not found ", s.symbol)
+		fmt.Printf("Symbol %v is not found ", symbol)
 		return false, nil
 	}
 
@@ -92,14 +103,19 @@ func (s *Stocks) findStock() error {
 		return fmt.Errorf("API request error: %w", err)
 	}
 
-	s.parseStocksResponseBody(requestBody)
+	if err := s.parseStocksResponseBody(requestBody); err != nil {
+		return fmt.Errorf("parsing response error: %w", err)
+	}
+
 	return nil
 }
 
 // GetRate fetches the exchange rate
-func (s *Stocks) GetPrice() float64 {
-	s.findStock()
-	return s.price
+func (s *Stocks) GetPrice() (float64, error) {
+	if err := s.findStock(); err != nil {
+		return 0.0, err
+	}
+	return s.price, nil
 }
 
 // parseResponseBody parses JSON response

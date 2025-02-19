@@ -72,14 +72,7 @@ func (apiClient *APIClient) GetRequest(url string) ([]byte, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		switch resp.StatusCode {
-		case http.StatusNotFound:
-			return nil, fmt.Errorf("status not found: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-		case http.StatusBadGateway:
-			return nil, fmt.Errorf("status Bad Gateway: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-		case http.StatusInternalServerError:
-			return nil, fmt.Errorf("internal server error: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-		}
+		return nil, fmt.Errorf("unexpected status: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 	}
 
 	body, err := io.ReadAll(resp.Body)

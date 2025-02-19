@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"stocks/stocks"
+	"stockexchange/stocks"
 )
 
 func main() {
@@ -12,7 +12,6 @@ func main() {
 		fmt.Println("can not create stocks %w", err)
 	}
 
-	StocksClient.ValidateSymbol()
 	fmt.Println(StocksClient.GetPrice())
 
 }

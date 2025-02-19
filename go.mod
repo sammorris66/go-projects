@@ -1,5 +1,5 @@
-module stocks
+module stockexchange
 
-go 1.23
+go 1.23.5
 
-require github.com/jarcoal/httpmock v1.3.1 // indirect
+require github.com/jarcoal/httpmock v1.3.1
