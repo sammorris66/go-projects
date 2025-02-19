@@ -11,11 +11,9 @@ on:
 
 jobs:
 
-  run_unit_tests:
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: pwsh
+  run_checks:
+    runs-on: ubuntu-latest
+
     steps:
     - id: go-checks
       uses: sammorris66/go-checks@v1
