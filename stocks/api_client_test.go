@@ -11,6 +11,9 @@ import (
 )
 
 func TestNewAPIClient(t *testing.T) {
+
+	os.Setenv("API_TOKEN", "valid_token")
+
 	client, err := NewAPIClient()
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
