@@ -16,6 +16,6 @@ jobs:
 
     steps:
     - id: go-checks
-      uses: sammorris66/go-checks@v1
+      uses: sammorris66/go-checks@2a1f6e32748a9d490a7b8128e1f080198c31cbe8
       with:
         go-version: '1.23'
