@@ -1,0 +1,18 @@
+# Ignore compiled files
+*.o
+*.out
+*.exe
+
+# Ignore log and temp files
+*.log
+*.tmp
+*.swp
+
+# Ignore .env files (commonly used for sensitive information)
+.env
+
+# Ignore all .txt files except README.txt
+*.txt
+!README.txt
+
+stockexchange
