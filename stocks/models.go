@@ -13,7 +13,7 @@ type StockInformation struct {
 
 type StockResult struct {
 	Ticker                 string  `json:"T"`
-	Volume                 int     `json:"v"`
+	Volume                 float64 `json:"v"`
 	VolumeWeightedAvgPrice float64 `json:"vw"`
 	Open                   float64 `json:"o"`
 	Close                  float64 `json:"c"`

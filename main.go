@@ -1,17 +1,16 @@
+/*
+Copyright © 2025 NAME HERE <EMAIL ADDRESS>
+*/
 package main
 
 import (
-	"fmt"
+	"stockexchange/cmd"
 	"stockexchange/stocks"
 )
 
 func main() {
 
-	StocksClient, err := stocks.NewStocks("C:GBPAUD", "fx")
-	if err != nil {
-		fmt.Println("can not create stocks %w", err)
-	}
-
-	fmt.Println(StocksClient.GetPrice())
-
+	stocks.GlobalFactory.Register("stocks", stocks.NewStocks)
+	stocks.GlobalFactory.Register("fx", stocks.NewFx)
+	cmd.Execute()
 }

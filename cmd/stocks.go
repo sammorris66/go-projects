@@ -2,10 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"stockexchange/stocks"
 
 	"github.com/spf13/cobra"
-
-	"stockexchange/stocks"
 )
 
 // fxCmd represents the fx command
@@ -28,12 +27,11 @@ var stocksCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		symbol, _ := cmd.Flags().GetString("symbol")
 
-		StocksClient, err := stocks.NewStocks(symbol, "stocks")
-		if err != nil {
-			fmt.Println("can not create stocks %w", err)
-		}
+		exchange, _ := stocks.GlobalFactory.Create("stocks", symbol)
 
-		fmt.Println(StocksClient.GetPrice())
+		price, _ := exchange.GetPrice()
+
+		fmt.Println(price)
 	},
 }
 
