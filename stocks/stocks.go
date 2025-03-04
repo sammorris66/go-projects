@@ -28,7 +28,6 @@ func (e *ExchangeBase) ValidateSymbol(symbol string) (bool, error) {
 		fmt.Printf("Symbol %v is found ", symbol)
 		return true, nil
 	} else {
-		fmt.Errorf("symbol %v is not found ", symbol)
 		return false, nil
 	}
 

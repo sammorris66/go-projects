@@ -22,10 +22,10 @@ var fxCmd = &cobra.Command{
 	Usage examples:
 
   	# Get the FX price for a specific currency pair
-  	fx --symbol=c:USDEUR
+  	fx --symbol=USD/EUR
 
   	# Using the short flag
-  	fx -s c:GBPUSD
+  	fx -s GBP/USD
 
 	This command integrates with the stocks package to retrieve FX data and requires 
 	a valid symbol to function correctly.`,

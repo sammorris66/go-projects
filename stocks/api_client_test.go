@@ -18,9 +18,6 @@ func TestNewAPIClient(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	if client == nil {
-		t.Fatalf("Expected a valid APIClient instance, got nil")
-	}
 	if client.timeout != 10 {
 		t.Errorf("Expected timeout=10, got %d", client.timeout)
 	}
