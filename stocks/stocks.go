@@ -2,61 +2,24 @@ package stocks
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"slices"
+	"strings"
 )
 
 const baseUrl string = "https://api.polygon.io"
 
-type Stocks struct {
+type ExchangeBase struct {
 	symbol    string
 	price     float64
 	apiClient APIClient
 	ticker    Ticker
 }
 
-// NewStocks initializes an `Stocks` instance
-func NewStocks(symbol, market string) (*Stocks, error) {
+func (e *ExchangeBase) ValidateSymbol(symbol string) (bool, error) {
 
-	if symbol == "" {
-		return nil, fmt.Errorf("symbol can not be empty")
-	}
-
-	if market == "" {
-		return nil, fmt.Errorf("market can not be empty")
-	}
-
-	ticker, err := NewTicker(market) // Capture both values
-	if err != nil {
-		return nil, fmt.Errorf("failed to create ticker: %w", err)
-	}
-
-	apiClient, err := NewAPIClient()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create api client: %w", err)
-	}
-
-	stock := &Stocks{
-		symbol:    symbol,
-		apiClient: *apiClient,
-		ticker:    *ticker,
-	}
-
-	valid, err := stock.validateSymbol(symbol)
-	if err != nil {
-		return nil, fmt.Errorf("symbol validation failed: %w", err)
-	}
-	if !valid {
-		return nil, fmt.Errorf("invalid symbol: %s", symbol)
-	}
-
-	return stock, nil
-
-}
-
-func (s *Stocks) validateSymbol(symbol string) (bool, error) {
-
-	resp, err := s.ticker.GetTickers()
+	resp, err := e.ticker.GetTickers()
 	if err != nil {
 		return false, fmt.Errorf("can not get the ticker information: %w", err)
 	}
@@ -65,15 +28,15 @@ func (s *Stocks) validateSymbol(symbol string) (bool, error) {
 		fmt.Printf("Symbol %v is found ", symbol)
 		return true, nil
 	} else {
-		fmt.Printf("Symbol %v is not found ", symbol)
+		fmt.Errorf("symbol %v is not found ", symbol)
 		return false, nil
 	}
 
 }
 
 // CreateUrl generates the API endpoint URL
-func (s *Stocks) createUrl() (string, error) {
-	basePath, err := url.JoinPath(baseUrl, "v2/aggs/ticker", s.symbol, "prev")
+func (e *ExchangeBase) createUrl() (string, error) {
+	basePath, err := url.JoinPath(baseUrl, "v2/aggs/ticker", e.symbol, "prev")
 	if err != nil {
 		return "", fmt.Errorf("error joining path: %w", err)
 	}
@@ -87,23 +50,24 @@ func (s *Stocks) createUrl() (string, error) {
 	queryParams.Set("adjusted", "true")
 
 	parsedURL.RawQuery = queryParams.Encode()
+	fmt.Println(parsedURL.String())
 	return parsedURL.String(), nil
 }
 
 // findStock fetches and parses exchange rate data
-func (s *Stocks) findStock() error {
+func (e *ExchangeBase) findStock() error {
 
-	fullUrl, err := s.createUrl()
+	fullUrl, err := e.createUrl()
 	if err != nil {
 		return err
 	}
 
-	requestBody, err := s.apiClient.GetRequest(fullUrl)
+	requestBody, err := e.apiClient.GetRequest(fullUrl)
 	if err != nil {
 		return fmt.Errorf("API request error: %w", err)
 	}
 
-	if err := s.parseStocksResponseBody(requestBody); err != nil {
+	if err := e.parseStocksResponseBody(requestBody); err != nil {
 		return fmt.Errorf("parsing response error: %w", err)
 	}
 
@@ -111,21 +75,95 @@ func (s *Stocks) findStock() error {
 }
 
 // GetRate fetches the exchange rate
-func (s *Stocks) GetPrice() (float64, error) {
-	if err := s.findStock(); err != nil {
+func (e *ExchangeBase) GetPrice() (float64, error) {
+	if err := e.findStock(); err != nil {
 		return 0.0, err
 	}
-	return s.price, nil
+	return e.price, nil
 }
 
 // parseResponseBody parses JSON response
-func (s *Stocks) parseStocksResponseBody(body []byte) error {
+func (e *ExchangeBase) parseStocksResponseBody(body []byte) error {
 	fxParser := JsonParser[StockInformation]{}
 	parsedBody, err := fxParser.ParseResponseBody(body)
 	if err != nil {
 		return fmt.Errorf("error parsing response body: %w", err)
 	}
 
-	s.price = parsedBody.Results[0].Open
+	e.price = parsedBody.Results[0].Open
 	return nil
+}
+
+type Stocks struct {
+	ExchangeBase
+}
+
+func NewStocks(symbol string) (BaseExchange, error) {
+	ticker, err := NewTicker("stocks")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ticker: %w", err)
+	}
+
+	apiClient, err := NewAPIClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create API client: %w", err)
+	}
+
+	stocks := &Stocks{
+		ExchangeBase: ExchangeBase{
+			symbol:    symbol,
+			apiClient: *apiClient,
+			ticker:    *ticker,
+		},
+	}
+
+	valid, err := stocks.ValidateSymbol(symbol)
+	if err != nil {
+		log.Fatalf("symbol validation failed: %v", err)
+	}
+	if !valid {
+		log.Fatalf("invalid symbol: %s", symbol)
+	}
+	return stocks, nil
+}
+
+type Fx struct {
+	ExchangeBase
+}
+
+func NewFx(symbol string) (BaseExchange, error) {
+	ticker, err := NewTicker("fx")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create ticker: %w", err)
+	}
+
+	apiClient, err := NewAPIClient()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create API client: %w", err)
+	}
+
+	fx := &Fx{
+		ExchangeBase: ExchangeBase{
+			symbol:    symbol,
+			apiClient: *apiClient,
+			ticker:    *ticker,
+		},
+	}
+
+	// Format symbol correctly
+	fx.formatSymbol(symbol)
+
+	valid, err := fx.ValidateSymbol(fx.symbol)
+	if err != nil {
+		log.Fatalf("symbol validation failed: %v", err)
+	}
+	if !valid {
+		log.Fatalf("invalid symbol: %s", fx.symbol)
+	}
+	return fx, nil
+}
+
+// Custom symbol formatting for FX
+func (f *Fx) formatSymbol(symbol string) {
+	f.symbol = "C:" + strings.ReplaceAll(symbol, "/", "")
 }
