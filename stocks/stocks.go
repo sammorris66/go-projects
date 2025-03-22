@@ -112,7 +112,7 @@ func NewStocks(symbol string) (BaseExchange, error) {
 		ExchangeBase: ExchangeBase{
 			symbol:    symbol,
 			apiClient: *apiClient,
-			ticker:    *ticker,
+			ticker:    ticker,
 		},
 	}
 
@@ -145,7 +145,7 @@ func NewFx(symbol string) (BaseExchange, error) {
 		ExchangeBase: ExchangeBase{
 			symbol:    symbol,
 			apiClient: *apiClient,
-			ticker:    *ticker,
+			ticker:    ticker,
 		},
 	}
 

@@ -5,12 +5,17 @@ import (
 	"net/url"
 )
 
-type Ticker struct {
+// Interface created to help with mocking test data
+type Ticker interface {
+	GetTickers() ([]string, error)
+}
+
+type StockTicker struct {
 	market    string
 	APIClient APIClient
 }
 
-func NewTicker(market string) (*Ticker, error) {
+func NewTicker(market string) (*StockTicker, error) {
 
 	if market == "" {
 		return nil, fmt.Errorf("market can not be empty")
@@ -21,14 +26,14 @@ func NewTicker(market string) (*Ticker, error) {
 		return nil, fmt.Errorf("failed to create api client: %w", err)
 	}
 
-	return &Ticker{
+	return &StockTicker{
 		market:    market,
 		APIClient: *apiClient,
 	}, nil
 }
 
 // CreateUrl generates the API endpoint URL
-func (t *Ticker) createUrl() (string, error) {
+func (t *StockTicker) createUrl() (string, error) {
 
 	basePath, err := url.JoinPath(baseUrl, "/v3/reference/tickers")
 	if err != nil {
@@ -49,7 +54,7 @@ func (t *Ticker) createUrl() (string, error) {
 	return parsedURL.String(), nil
 }
 
-func (t *Ticker) GetTickers() ([]string, error) {
+func (t *StockTicker) GetTickers() ([]string, error) {
 
 	var listTickers []string
 
@@ -60,7 +65,7 @@ func (t *Ticker) GetTickers() ([]string, error) {
 
 	resp, err := t.APIClient.GetRequest(url)
 	if err != nil {
-		fmt.Println("the is a error calling the Get method")
+		return nil, fmt.Errorf("the is a error calling the Get method %w", err)
 	}
 
 	tickers, err := t.parseResponseBody(resp)
@@ -77,7 +82,7 @@ func (t *Ticker) GetTickers() ([]string, error) {
 }
 
 // parseResponseBody parses JSON response
-func (Ticker) parseResponseBody(body []byte) (TickerInformation, error) {
+func (StockTicker) parseResponseBody(body []byte) (TickerInformation, error) {
 	fxParser := JsonParser[TickerInformation]{}
 	parsedBody, err := fxParser.ParseResponseBody(body)
 	if err != nil {
